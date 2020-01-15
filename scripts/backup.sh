@@ -110,9 +110,11 @@ else
 fi
 
 
+
 # Backup ElasticSearch?
 # -------------------
 # ... later ... Not important. Can just rebuild the search index.
+
 
 
 # Backup uploads
@@ -130,12 +132,12 @@ touch $backup_test_dir/$(date --utc +%FT%H%M)--$(hostname)--$random_value
 # Don't want to archive all uploads every day — then we might soon run out of disk (if there're
 # many uploads — they can be huge). Instead, create archives every month only, which contains
 # all files uploaded in between. So:
-# Every new month, start growing a new uploads-backup-archive with a name
-# matching  -uploads-up-to-incl-<yyyy-mm>.d. They will
-# contain all files uploaded previous months that haven't been deleted,
-# plus all files from the curent <yyyy-mm> month (e.g. 2020-01 = Jan 2020) also
-# if they were later deleted this current month.
-# (But such deleted files won't appear in the *next* month's archive.)
+# Every new month, start growing a new uploads backup archive with a name
+# matching  -uploads-up-to-incl-<yyyy-mm>.d. It'll include all files uploaded
+# previous months that haven't been deleted, plus all files from the curent
+# <yyyy-mm> month (e.g. 2020-01 = Jan 2020) — also if they get deleted later
+# this same month.
+# (But such deleted files won't appear in the *next* months' archives.)
 
 uploads_backup_d="`hostname`-uploads-up-to-incl-`date +%Y-%m`.d"
 $so_nice  /usr/bin/rsync -a  $uploads_dir/  $backup_archives_dir/$uploads_backup_d/
@@ -147,12 +149,7 @@ touch $backup_archives_dir/$uploads_backup_d
 
 log_message "Backed up uploads to: $backup_archives_dir/$uploads_backup_d"
 
-
-#  start_date=`date +%Y-%m-01`
-#  uploads_start_date_tgz="uploads-start-$start_date.tar.gz"
-#  uploads_backup_filename="`hostname`-latest-$uploads_start_date_tgz"
-#  other_archives_same_start_date=$( find $backup_archives_dir -type f -name '*-uploads-*' | egrep "`hostname`.+$uploads_start_date_tgz" )
-
+# Keep track of what we've backed up:
 /usr/local/bin/docker-compose exec rdb psql talkyard talkyard -c \
     "insert into backup_test_log3 (logged_at, logged_by, backup_of_what, random_value) values (now_utc(), '`hostname`', 'uploads', '$random_value');"
 
