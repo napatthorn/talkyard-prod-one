@@ -24,7 +24,7 @@ docker-compose stop app
 # Restore the database, PostgreSQL
 # ------------------------------
 
-# DANGER: Overwrites any existing database.
+# NOTE: Overwrites any existing database.
 zcat /BACKUP_ARCHIVES_DIR/DB_BACKUP_FILE.sql.gz \
     | docker exec -i $(docker-compose ps -q rdb) psql postgres postgres \
     | tee -a talkyard-maint.log
@@ -42,7 +42,7 @@ zcat /BACKUP_ARCHIVES_DIR/DB_BACKUP_FILE.sql.gz \
 rsync -a  /BACKUP_ARCHIVES_DIR/UPLOADS_BACKUP_DIR.d/  /opt/talkyard/data/uploads/
 
 
-# Configuration and HTTPS certs:
+# Restore config files and HTTPS certs
 # ------------------------------
 
 mkdir -p default-conf/data
@@ -59,8 +59,9 @@ mv old-conf/data/sites-enabled-auto-gen data/sites-enabled-auto-gen
 docker-compose start app
 ```
 
-Think about if you need to 1) update your DNS server with the IP address of your
-new Talkyard server. Or maybe 2) change the hostname of the Talkyard server
+Also, think about if you need to 1) update your DNS server with the IP address of
+your new Talkyard server. Or maybe 2) change the hostname of the Talkyard server
 — you'd then edit Nginx config in `conf/play-framework.conf`,
 and `conf/sites-enabled-manual/` or `data/sites-enabled-auto-gen/`, plus
-generate a LetsEncrypt cert (todo: document how).
+generate a LetsEncrypt cert
+(see: `https://github.com/debiki/talkyard-prod-one/blob/master/docs/setup-https.md`).
