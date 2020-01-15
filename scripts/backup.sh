@@ -194,6 +194,8 @@ echo
 #
 # (The script runs 02:10 by default.)
 #
+# Also see:  scripts/tests/test-generate-backups.sh
+#
 
 
 # vim: et ts=2 sw=2 tw=0 fo=r
