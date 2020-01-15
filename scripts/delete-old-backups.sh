@@ -97,7 +97,7 @@ if [ "$num_recent_bkps" -le "2" ]; then
   echo
 else
   eval $find_upl_bkps -mtime +123  \
-      -print -exec rm -r '{}' \;  \
+      -print -exec rm -r '{}' +  \
       >> $deleted_backups_log
 fi
 
@@ -106,7 +106,8 @@ fi
 find $backup_archives_dir -type f -name '*-uploads-start-*.tar.gz' -mtime +123 -print -delete >> $deleted_backups_log
 
 
-log_message "Deleted these backups: `cat $deleted_backups_log`"
+log_message "Deleted these backups:"
+echo "`cat $deleted_backups_log`"
 log_message "Done deleting backups."
 echo
 
