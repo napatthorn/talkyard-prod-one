@@ -97,7 +97,7 @@ to send the traffic to Talkayrd or that other thing.
 
 1. Go to `http://your-forum-hostname` (note: `http` not `https`). This should now redirect to `https`.
 
-1. Enable automatic renewal of HTTPS certificates: *(this is a bit untested, as of August 11, 2018)*
+1. Enable automatic renewal of HTTPS certificates:
 
    ```
    cd /opt/talkyard/
