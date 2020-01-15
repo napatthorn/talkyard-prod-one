@@ -18,8 +18,7 @@ deleted_backups_log=./deleted-backups.tmp.log
 
 function deleteSome {
   # Need 'eval' otherwise find thinks the single quotes "'" are parts of a file name.
-  find_files="eval find $backup_archives_dir -type f -name '$@'"
-  echo $find_files
+  find_files="eval find $backup_archives_dir -name '$@' -type f"
 
   min_recent_bkps=8
   recent_days=10
@@ -32,10 +31,12 @@ function deleteSome {
   # and all old ones have been auto deleted.)
   #
   if [ "$num_recent_bkps" -lt "$min_recent_bkps" ]; then
-    log_message "There're only $num_recent_bkps recent backups of type '$@', less"
+    log_message "There're only $num_recent_bkps recent backups of type '$@' less"
     log_message "than $recent_days days old. That's few — maybe something is amiss?"
-    log_message "So I won't delete any old backups of that type."
-    log_message "I find only these recent files: $recent_bkps"
+    log_message "I won't delete any old backups of that type."
+    log_message "I see only these recent backups:"
+    echo "$recent_bkps"
+    echo
   else
     # Delete all older than a year.
     $find_files -mtime +366 -print -delete >> $deleted_backups_log
@@ -88,10 +89,12 @@ recent_bkps=$(eval $find_upl_bkps -not -mtime +123)
 num_recent_bkps=$(echo "$recent_bkps" | wc --lines)
 
 if [ "$num_recent_bkps" -le "2" ]; then
-  log_message "There're only $num_recent_bkps recent uploads backups,"
-  log_message "That's too few — something is amiss."
-  log_message "So I won't delete any old uploads backups."
-  log_message "I find only these uploads backups files: $recent_bkps"
+  log_message "There're only $num_recent_bkps recent uploads backups."
+  log_message "That's few — maybe something is amiss?"
+  log_message "I won't delete any old uploads backups."
+  log_message "I see only these uploads backups:"
+  echo "$recent_bkps"
+  echo
 else
   eval $find_upl_bkps -mtime +123  \
       -print -exec rm -r '{}' \;  \

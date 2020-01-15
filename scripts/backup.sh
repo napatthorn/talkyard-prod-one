@@ -12,12 +12,13 @@ if [ $# -ne 1 ]; then
   exit 1
 fi
 
-log_message "Backing up, tag: '$1'"
+when="`date '+%FT%H%MZ' --utc`"
+
+log_message "Backing up,  when: '$when',  tag: '$1'"
 
 # See the comment mentioning gzip and "soft lockup" below.
 so_nice="nice -n19"
 
-when="`date '+%FT%H%MZ' --utc`"
 backup_archives_dir=/opt/talkyard-backups/archives
 backup_config_temp_dir=/opt/talkyard-backups/config-temp
 uploads_dir=/opt/talkyard/data/uploads
@@ -37,7 +38,7 @@ log_message "Generated random test-that-backups-work value: '$random_value'"
 
 postgres_backup_path=$backup_archives_dir/`hostname`-$when-$1-postgres.sql
 postgres_backup_path_gz=$postgres_backup_path.gz
-log_message "Backing up Postgres to: $postgres_backup_path ..."
+log_message "Backing up Postgres to: $postgres_backup_path_gz ..."
 
 # Don't pipe to gzip — that can spike the CPU to 100%, making the kernel panic.
 # It then logs:
@@ -67,7 +68,7 @@ log_message "Backing up Postgres to: $postgres_backup_path ..."
 #
 /usr/local/bin/docker-compose exec -T rdb pg_dumpall --username=postgres --clean --if-exists > $postgres_backup_path
 $so_nice gzip $postgres_backup_path
-log_message "Backed up Postgres, and gzipped to: $postgres_backup_path_gz"
+log_message "Done backing up Postgres."
 
 # If you need to backup really manually:
 # /usr/local/bin/docker-compose exec -T rdb pg_dumpall --username=postgres --clean --if-exists \
@@ -102,9 +103,9 @@ $so_nice tar -czf $config_backup_path -C $backup_config_temp_dir ./
 
 if [ -f data/cache/dump.rdb ]; then
   redis_backup_path=$backup_archives_dir/`hostname`-$when-$1-redis.rdb.gz
-  log_message "Backing up Redis..."
+  log_message "Backing up Redis to: $redis_backup_path ..."
   $so_nice gzip --to-stdout data/cache/dump.rdb > $redis_backup_path
-  log_message "Backed up Redis to: $redis_backup_path"
+  log_message "Done backing up Redis."
 else
   log_message "No Redis dump.rdb to backup."
 fi
@@ -119,6 +120,10 @@ fi
 
 # Backup uploads
 # -------------------
+
+uploads_backup_d="`hostname`-uploads-up-to-incl-`date +%Y-%m`.d"
+
+log_message "Backing up uploads to: $backup_archives_dir/$uploads_backup_d ..."
 
 # Insert a backup test timestamp, so we can check that the backup archive contents is fresh.
 # Do this as files with the timestamp in the file name — because then they can be checked for
@@ -139,7 +144,6 @@ touch $backup_test_dir/$(date --utc +%FT%H%M)--$(hostname)--$random_value
 # this same month.
 # (But such deleted files won't appear in the *next* months' archives.)
 
-uploads_backup_d="`hostname`-uploads-up-to-incl-`date +%Y-%m`.d"
 $so_nice  /usr/bin/rsync -a  $uploads_dir/  $backup_archives_dir/$uploads_backup_d/
 
 # Bump the mtime, so scripts/delete-old-backups.sh won't delete it too soon.
@@ -147,7 +151,7 @@ $so_nice  /usr/bin/rsync -a  $uploads_dir/  $backup_archives_dir/$uploads_backup
 # which might be years ago.)
 touch $backup_archives_dir/$uploads_backup_d
 
-log_message "Backed up uploads to: $backup_archives_dir/$uploads_backup_d"
+log_message "Done backing up uploads."
 
 # Keep track of what we've backed up:
 /usr/local/bin/docker-compose exec rdb psql talkyard talkyard -c \
@@ -169,6 +173,17 @@ cp docs/how-restore-backup.md $backup_archives_dir/HOW-RESTORE-BACKUPS.md
 # Touch it so it'll be the first thing you see, when you type 'ls -halt'.
 touch $backup_archives_dir/HOW-RESTORE-BACKUPS.md
 
+
+log_message "Done backing up,  when: '$when',  tag: '$1'."
+
+
+
+# You can test run this script via crontab. In Bash, type:
+#
+#     date -s '2020-02-01 02:09:57' ; tail -f talkyard-maint.log
+#
+# (The script runs 02:10 by default.)
+#
 
 
 # vim: et ts=2 sw=2 tw=0 fo=r
