@@ -19,3 +19,5 @@ then
 else
   log_message "Deleted these old log files: $deleted_logs_str"
 fi
+
+echo

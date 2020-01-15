@@ -80,6 +80,10 @@ log_message "Done backing up Postgres."
 # Backup config
 # -------------------
 
+config_backup_path="$backup_archives_dir/`hostname`-$when-$1-config.tar.gz"
+
+log_message "Backing up config to: $config_backup_path ..."
+
 rm -fr $backup_config_temp_dir
 mkdir -p $backup_config_temp_dir/data
 
@@ -87,10 +91,9 @@ cp -a /opt/talkyard/conf $backup_config_temp_dir/
 cp -a /opt/talkyard/data/certbot $backup_config_temp_dir/data/
 cp -a /opt/talkyard/data/sites-enabled-auto-gen $backup_config_temp_dir/data/
 
-config_backup_path="$backup_archives_dir/`hostname`-$when-$1-config.tar.gz"
-
 $so_nice tar -czf $config_backup_path -C $backup_config_temp_dir ./
 
+log_message "Done backing up config."
 
 
 # Backup Redis
@@ -101,8 +104,9 @@ $so_nice tar -czf $config_backup_path -C $backup_config_temp_dir ./
 # atomically using rename(2) only when the new snapshot is complete."""
 # See http://redis.io/topics/persistence
 
+redis_backup_path=$backup_archives_dir/`hostname`-$when-$1-redis.rdb.gz
+
 if [ -f data/cache/dump.rdb ]; then
-  redis_backup_path=$backup_archives_dir/`hostname`-$when-$1-redis.rdb.gz
   log_message "Backing up Redis to: $redis_backup_path ..."
   $so_nice gzip --to-stdout data/cache/dump.rdb > $redis_backup_path
   log_message "Done backing up Redis."
@@ -170,11 +174,17 @@ log_message "Done backing up uploads."
 
 cp docs/how-restore-backup.md $backup_archives_dir/HOW-RESTORE-BACKUPS.md
 
-# Touch it so it'll be the first thing you see, when you type 'ls -halt'.
+# It's nice to see these listed above the '.' directory, with 'ls -halt':
+touch --no-create $redis_backup_path
+touch --no-create $config_backup_path
+touch --no-create $postgres_backup_path_gz
+
+# Touch the docs file so it'll be the first thing one sees, with 'ls -halt'.
 touch $backup_archives_dir/HOW-RESTORE-BACKUPS.md
 
 
-log_message "Done backing up,  when: '$when',  tag: '$1'."
+log_message "Done backing up."
+echo
 
 
 

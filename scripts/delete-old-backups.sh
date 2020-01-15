@@ -108,6 +108,7 @@ find $backup_archives_dir -type f -name '*-uploads-start-*.tar.gz' -mtime +123 -
 
 log_message "Deleted these backups: `cat $deleted_backups_log`"
 log_message "Done deleting backups."
+echo
 
 rm $deleted_backups_log
 
