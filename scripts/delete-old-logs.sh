@@ -17,7 +17,9 @@ if [ -z "$deleted_logs_str" ]
 then
   log_message "No old log files to delete."
 else
-  log_message "Deleted these old log files: $deleted_logs_str"
+  log_message "Deleted these old log files:"
+  echo "$deleted_logs_str"
+  log_message "Done deleting old log files."
 fi
 
 echo

@@ -87,6 +87,9 @@ log_message "Backing up config to: $config_backup_path ..."
 rm -fr $backup_config_temp_dir
 mkdir -p $backup_config_temp_dir/data
 
+cp -a /opt/talkyard/.env $backup_config_temp_dir/
+cp -a /opt/talkyard/docker-compose.* $backup_config_temp_dir/
+cp -a /opt/talkyard/talkyard-maint.log $backup_config_temp_dir/
 cp -a /opt/talkyard/conf $backup_config_temp_dir/
 cp -a /opt/talkyard/data/certbot $backup_config_temp_dir/data/
 cp -a /opt/talkyard/data/sites-enabled-auto-gen $backup_config_temp_dir/data/
@@ -125,7 +128,7 @@ fi
 # Backup uploads
 # -------------------
 
-uploads_backup_d="`hostname`-uploads-up-to-incl-`date +%Y-%m`.d"
+uploads_backup_d="$(hostname)-uploads-up-to-incl-$(date +%Y-%m).d"
 
 log_message "Backing up uploads to: $backup_archives_dir/$uploads_backup_d ..."
 
@@ -133,19 +136,20 @@ log_message "Backing up uploads to: $backup_archives_dir/$uploads_backup_d ..."
 # Do this as files with the timestamp in the file name — because then they can be checked for
 # by just listing (but not extracting) the contents of the archive.
 # This creates a file like:  2017-04-21T0425--server-hostname--NxWsTsQvVnp2y0YvN8sb
-backup_test_dir=$uploads_dir/backup-test
+backup_test_dir="$uploads_dir/backup-test"
 mkdir -p $backup_test_dir
 find $backup_test_dir -type f -mtime +31 -delete
 touch $backup_test_dir/$(date --utc +%FT%H%M)--$(hostname)--$random_value
 
-# Don't want to archive all uploads every day — then we might soon run out of disk (if there're
-# many uploads — they can be huge). Instead, create archives every month only, which contains
-# all files uploaded in between. So:
-# Every new month, start growing a new uploads backup archive with a name
-# matching  -uploads-up-to-incl-<yyyy-mm>.d. It'll include all files uploaded
-# previous months that haven't been deleted, plus all files from the curent
-# <yyyy-mm> month (e.g. 2020-01 = Jan 2020) — also if they get deleted later
-# this same month.
+# Don't archive all uploads every day — then we might soon run out of disk
+# (if there're many uploads — they can be huge). Instead, every new month,
+# start growing a new uploads backup archive directory with a name matching:
+#     -uploads-up-to-incl-<yyyy-mm>.d
+# e.g.:
+#     -uploads-up-to-incl-2020-01.d
+# It'll include all files uploaded previous months that haven't been deleted,
+# plus all files from the curent month — also if they get deleted later this
+# same month (Jan 2020 in the example above).
 # (But such deleted files won't appear in the *next* months' archives.)
 
 $so_nice  /usr/bin/rsync -a  $uploads_dir/  $backup_archives_dir/$uploads_backup_d/
@@ -174,13 +178,9 @@ log_message "Done backing up uploads."
 
 cp docs/how-restore-backup.md $backup_archives_dir/HOW-RESTORE-BACKUPS.md
 
-# It's nice to see these listed above the '.' directory, with 'ls -halt':
-touch --no-create $redis_backup_path
-touch --no-create $config_backup_path
-touch --no-create $postgres_backup_path_gz
-
 # Touch the docs file so it'll be the first thing one sees, with 'ls -halt'.
 touch $backup_archives_dir/HOW-RESTORE-BACKUPS.md
+
 
 
 log_message "Done backing up."

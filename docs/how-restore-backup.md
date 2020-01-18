@@ -2,9 +2,9 @@
 ## How restore a Talkyard backup
 
 If your server suddenly disappears, then, to restore a backup on
-another server, you can do as follows.
+a new server, you can do as follows.
 
-Install Talkyard on a new server, following the instructions in
+Install Talkyard on that new server, following the instructions in
 https://github.com/debiki/talkyard-prod-one/blob/master/README.md.
 
 Login to the new server, and run the commands below.
@@ -18,7 +18,9 @@ cd /opt/talkyard
 
 # Stop the 'app' container, so the import won't fail because of
 # active database connections.
+# And start the database — in case it's not running already.
 docker-compose stop app
+docker-compose up -d rdb
 
 
 # Restore the database, PostgreSQL
@@ -59,7 +61,7 @@ mv old-conf/data/sites-enabled-auto-gen data/sites-enabled-auto-gen
 docker-compose start app
 ```
 
-Also, think about if you need to 1) update your DNS server with the IP address of
+Also, think about if you need to 1) update your DNS server with the IP address to
 your new Talkyard server. Or maybe 2) change the hostname of the Talkyard server
 — you'd then edit Nginx config in `conf/play-framework.conf`,
 and `conf/sites-enabled-manual/` or `data/sites-enabled-auto-gen/`, plus

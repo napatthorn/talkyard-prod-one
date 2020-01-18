@@ -17,7 +17,7 @@ deleted_backups_log=./deleted-backups.tmp.log
 # -------------------
 
 function deleteSome {
-  # Need 'eval' otherwise find thinks the single quotes "'" are parts of a file name.
+  # Need 'eval' otherwise `find` thinks the single quotes "'" are parts of a file name.
   find_files="eval find $backup_archives_dir -name '$@' -type f"
 
   min_recent_bkps=8
@@ -81,7 +81,7 @@ find $backup_archives_dir -daystart -type f -name '*-redis.rdb.gz' -mtime +4 -pr
 # Let's keep such archive dirs for 4 months = 4 archives (30.5 * 4 = 122 < 123).
 #
 # But if there're only 1 or 2 archives, then, don't delete anything — because
-# that'd mean something is amiss: new backups no longer appear.
+# that could mean something is amiss: new backups no longer appear.
 
 find_upl_bkps="find $backup_archives_dir -name '*-uploads-up-to-incl-*.d' -type d"
 
