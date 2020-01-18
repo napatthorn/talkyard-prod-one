@@ -4,10 +4,12 @@
 If your server suddenly disappears, then, to restore a backup on
 a new server, you can do as follows.
 
-Install Talkyard on that new server, following the instructions in
-https://github.com/debiki/talkyard-prod-one/blob/master/README.md.
+Start installing Talkyard on that new server, following the instructions in
+https://github.com/debiki/talkyard-prod-one/blob/master/README.md
+— but stop at step 6: "Edit config values".
+Instead, we'll copy config files from the backup:
 
-Login to the new server, and run the commands below.
+On new server, as root, run the commands below:
 
 Replace `BACKUP_ARCHIVES_DIR` and `DB_BACKUP_FILE` etcetera below, with
 the actual path and file names.
@@ -16,15 +18,32 @@ the actual path and file names.
 sudo -i # become root
 cd /opt/talkyard
 
-# Stop the 'app' container, so the import won't fail because of
-# active database connections.
-# And start the database — in case it's not running already.
-docker-compose stop app
-docker-compose up -d rdb
+
+# Restore config files and HTTPS certs
+# ------------------------------
+
+# First, let's "backup" the new conf, in case you'd like to diff old vs default.
+mkdir -p default-conf/data
+mv conf docker-compose.* .env default-conf/
+mv data/certbot default-conf/data/
+mv data/sites-enabled-auto-gen default-conf/data/
+
+# Then restore the old config.
+mkdir old-conf
+tar xf /BACKUP_ARCHIVES_DIR/CONFIG_BACKUP_FILE.tar.gz -C old-conf
+mv old-conf/.env                        ./
+mv old-conf/docker-compose.*            ./
+mv old-conf/conf                        ./conf
+mv old-conf/data/certbot                data/certbot
+mv old-conf/data/sites-enabled-auto-gen data/sites-enabled-auto-gen
+
 
 
 # Restore the database, PostgreSQL
 # ------------------------------
+
+# First we need to start PostgreSQL.
+docker-compose up -d rdb
 
 # NOTE: Overwrites any existing database.
 zcat /BACKUP_ARCHIVES_DIR/DB_BACKUP_FILE.sql.gz \
@@ -42,23 +61,12 @@ zcat /BACKUP_ARCHIVES_DIR/DB_BACKUP_FILE.sql.gz \
 # ------------------------------
 
 rsync -a  /BACKUP_ARCHIVES_DIR/UPLOADS_BACKUP_DIR.d/  /opt/talkyard/data/uploads/
+```
 
+And, lastly, start everything:
 
-# Restore config files and HTTPS certs
-# ------------------------------
-
-mkdir -p default-conf/data
-mv conf default-conf/
-mv data/certbot default-conf/data/
-mv data/sites-enabled-auto-gen default-conf/data/
-
-mkdir old-conf
-tar xf /BACKUP_ARCHIVES_DIR/CONFIG_BACKUP_FILE.tar.gz -C old-conf
-mv old-conf/conf                        ./conf
-mv old-conf/data/certbot                data/certbot
-mv old-conf/data/sites-enabled-auto-gen data/sites-enabled-auto-gen
-
-docker-compose start app
+```
+docker-compose up
 ```
 
 Also, think about if you need to 1) update your DNS server with the IP address to
