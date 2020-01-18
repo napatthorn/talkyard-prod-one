@@ -25,11 +25,10 @@ cd /opt/talkyard
 # First, let's "backup" the new conf, in case you'd like to diff old vs default.
 mkdir -p default-conf/data
 mv conf docker-compose.* .env default-conf/
-mv data/certbot default-conf/data/
-mv data/sites-enabled-auto-gen default-conf/data/
 
 # Then restore the old config.
 mkdir old-conf
+mkdir data
 tar xf /BACKUP_ARCHIVES_DIR/CONFIG_BACKUP_FILE.tar.gz -C old-conf
 mv old-conf/.env                        ./
 mv old-conf/docker-compose.*            ./
@@ -38,11 +37,10 @@ mv old-conf/data/certbot                data/certbot
 mv old-conf/data/sites-enabled-auto-gen data/sites-enabled-auto-gen
 
 
-
 # Restore the database, PostgreSQL
 # ------------------------------
 
-# First we need to start PostgreSQL.
+# First, start PostgreSQL.
 docker-compose up -d rdb
 
 # NOTE: Overwrites any existing database.
@@ -66,7 +64,8 @@ rsync -a  /BACKUP_ARCHIVES_DIR/UPLOADS_BACKUP_DIR.d/  /opt/talkyard/data/uploads
 And, lastly, start everything:
 
 ```
-docker-compose up
+docker-compose up -d
+docker-compose logs -f --tail 999
 ```
 
 Also, think about if you need to 1) update your DNS server with the IP address to
