@@ -21,5 +21,4 @@ else
   echo "$deleted_logs_str"
   log_message "Done deleting old log files."
 fi
-
 echo
