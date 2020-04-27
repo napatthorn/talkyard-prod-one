@@ -3,10 +3,10 @@ EXPOSE 8080
 WORKDIR /app
 COPY . .
 USER root
-apt-get update
-apt-get -y install git vim locales
-locale-gen en_US.UTF-8
-export LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
-cd /opt/
-git clone https://github.com/debiki/talkyard-prod-one.git talkyard
-cd talkyard
+RUN apt-get update
+RUN apt-get -y install git vim locales
+RUN locale-gen en_US.UTF-8
+RUN export LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
+RUN cd /opt/
+RUN git clone https://github.com/debiki/talkyard-prod-one.git talkyard
+RUN cd talkyard
