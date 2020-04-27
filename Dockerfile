@@ -2,7 +2,7 @@ FROM ubuntu:latest
 EXPOSE 8080
 WORKDIR /app
 COPY . .
-sudo -i
+USER root
 apt-get update
 apt-get -y install git vim locales
 locale-gen en_US.UTF-8
