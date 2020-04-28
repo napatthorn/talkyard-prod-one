@@ -15,4 +15,4 @@ RUN ./scripts/prepare-ubuntu.sh 2>&1 | tee -a talkyard-maint.log
 RUN ./scripts/install-docker-compose.sh 2>&1 | tee -a talkyard-maint.log
 RUN ./scripts/start-firewall.sh 2>&1 | tee -a talkyard-maint.log
 RUN ./scripts/upgrade-if-needed.sh 2>&1 | tee -a talkyard-maint.log
-docker-compose restart app
+ENTRYPOINT ["CMD", "/bin/bash"]
