@@ -10,4 +10,6 @@ RUN export LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
 RUN cd /opt/
 RUN git clone https://github.com/debiki/talkyard-prod-one.git talkyard
 RUN cd talkyard
+ARG DEBIAN_FRONTEND=noninteractive
+RUN ./scripts/prepare-ubuntu.sh 2>&1 | tee -a talkyard-maint.log
 RUN ./scripts/install-docker-compose.sh 2>&1 | tee -a talkyard-maint.log
