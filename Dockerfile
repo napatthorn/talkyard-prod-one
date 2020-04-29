@@ -3,4 +3,4 @@ EXPOSE 8080
 WORKDIR /app
 COPY . .
 USER root
-CMD ["/bin/bash"]
+CMD ["run", "-it", "ubuntu"]
